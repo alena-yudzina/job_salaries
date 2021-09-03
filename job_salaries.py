@@ -138,12 +138,12 @@ def create_ascii_table(site, stats):
         'Вакансий обработано',
         'Средняя зарплата',
         ])
-    for language in stats.keys():
+    for language, stat in stats.items():
         table_row = [
             language,
-            stats[language]['vacancies_found'],
-            stats[language]['vacancies_processed'],
-            stats[language]['average_salary'],
+            stat['vacancies_found'],
+            stat['vacancies_processed'],
+            stat['average_salary'],
         ]
         table_rows.append(table_row)
     table = AsciiTable(table_rows)
@@ -153,8 +153,8 @@ def create_ascii_table(site, stats):
 
 def main():
     sites_stats = create_stats()
-    for site in sites_stats.keys():
-        ascii_table = create_ascii_table(site, sites_stats[site])
+    for site, stats in sites_stats.items():
+        ascii_table = create_ascii_table(site, stats)
         print(ascii_table, end='\n\n')
 
 
