@@ -58,30 +58,38 @@ def get_site_stats_hh(language='Python'):
     url = 'https://api.hh.ru/vacancies'
 
     vacancies = []
+    MOSCOW_ID = 1
+    SEARCHING_PERIOD = 30
+    VACANCIES_PER_PAGE = 100
     for page in count(0):
 
         payload = {
             'text': 'программист {0}'.format(language),
-            'area': 1,
-            'period': 3,
+            'area': MOSCOW_ID,
+            'period': SEARCHING_PERIOD,
             'page': page,
-            'per_page': 100,
+            'per_page': VACANCIES_PER_PAGE,
         }
 
         response = requests.get(url, params=payload)
         response.raise_for_status()
-        vacancies.extend(response.json()['items'])
+        response_body = response.json()
+        vacancies.extend(response_body['items'])
 
         max_page_number = 19
-        if page >= response.json()['pages'] or page >= max_page_number:
+        if page >= response_body['pages'] or page >= max_page_number:
             break
     return process_stats_params(vacancies, site='HeadHunter')
 
 
 def get_site_stats_sj(language='Python'):
     api_url = 'https://api.superjob.ru/2.0/vacancies/'
-    load_dotenv()
     vacancies = []
+    SEARCHING_PERIOD = 30
+    IT_DEPARTMENT_ID = 48
+    MOSCOW_ID = 4
+    VACANCIES_PER_PAGE = 100
+    SERCH_POSITION_ID = 1
     for page in count(0):
 
         headers = {
@@ -89,22 +97,22 @@ def get_site_stats_sj(language='Python'):
         }
 
         payload = {
-            'period': 30,
-            'catalogues[0]': 48,
-            't[0]': 4,
+            'period': SEARCHING_PERIOD,
+            'catalogues': IT_DEPARTMENT_ID,
+            'town': MOSCOW_ID,
             'page': page,
-            'count': 100,
+            'count': VACANCIES_PER_PAGE,
             'keywords[0][keys]': language,
             'keywords[0][skwc]': 'particular',
-            'keywords[0][srws]': 60,
+            'keywords[0][srws]': SERCH_POSITION_ID,
         }
 
         response = requests.get(api_url, headers=headers, params=payload)
         response.raise_for_status()
+        response_body = response.json()
+        vacancies.extend(response_body['objects'])
 
-        vacancies.extend(response.json()['objects'])
-
-        if not response.json()['more']:
+        if not response_body['more']:
             break
     return process_stats_params(vacancies, site='SuperJob')
 
@@ -143,14 +151,16 @@ def create_ascii_table(site, stats):
 
 
 def main():
+    load_dotenv()
     languages = [
         'Ruby', 'Swift', 'C', 'C#',
         'Java', 'JavaScript', 'PHP',
         'R', 'Python', 'C++',
     ]
+    test_languages = ['Ruby', 'Swift']
     sites_stats = {
-        'HeadHunter': create_stats(languages, get_site_stats_hh),
-        'SuperJob': create_stats(languages, get_site_stats_sj),
+        'HeadHunter': create_stats(test_languages, get_site_stats_hh),
+        'SuperJob': create_stats(test_languages, get_site_stats_sj),
     }
     for site, stats in sites_stats.items():
         ascii_table = create_ascii_table(site, stats)
