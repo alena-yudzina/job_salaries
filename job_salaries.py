@@ -35,18 +35,14 @@ def predict_rub_salary_sj(vacancy):
     return predict_salary(salary_from, salary_to)
 
 
-def process_stats_params(vacancies, site='HeadHunter'):
+def process_stats_params(vacancies, predict_salary_func):
     vacancy_salaries = []
     for vacancy in vacancies:
-        if site == 'HeadHunter':
-            salary_func = predict_rub_salary_hh
-        if site == 'SuperJob':
-            salary_func = predict_rub_salary_sj
-        salary = salary_func(vacancy)
+        salary = predict_salary_func(vacancy)
         vacancy_salaries.append(salary)
 
     found_vacancies = len(vacancy_salaries)
-    vacancy_salaries = list(filter(lambda salary: salary, vacancy_salaries))
+    vacancy_salaries = list(filter(bool, vacancy_salaries))
     if len(vacancy_salaries) != 0:
         average_salary = sum(vacancy_salaries) / len(vacancy_salaries)
     else:
@@ -79,7 +75,7 @@ def get_site_stats_hh(*args, language='Python'):
 
         if page >= response_body['pages'] - 1:
             break
-    return process_stats_params(vacancies, site='HeadHunter')
+    return process_stats_params(vacancies, predict_rub_salary_hh)
 
 
 def get_site_stats_sj(token, language='Python'):
@@ -114,7 +110,7 @@ def get_site_stats_sj(token, language='Python'):
 
         if not response_body['more']:
             break
-    return process_stats_params(vacancies, site='SuperJob')
+    return process_stats_params(vacancies, predict_rub_salary_sj)
 
 
 def create_stats(languages, site_stats_func, token=''):
