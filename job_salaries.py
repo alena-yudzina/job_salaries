@@ -1,5 +1,6 @@
 import os
 from itertools import count
+from dotenv.main import with_warn_for_invalid_lines
 
 import requests
 from dotenv import load_dotenv
@@ -54,7 +55,7 @@ def process_stats_params(vacancies, site='HeadHunter'):
     return average_salary, vacancies_processed, found_vacancies
 
 
-def get_site_stats_hh(language='Python'):
+def get_site_stats_hh(*args, language='Python'):
     url = 'https://api.hh.ru/vacancies'
 
     vacancies = []
@@ -76,13 +77,12 @@ def get_site_stats_hh(language='Python'):
         response_body = response.json()
         vacancies.extend(response_body['items'])
 
-        max_page_number = 19
-        if page >= response_body['pages'] or page >= max_page_number:
+        if page >= response_body['pages'] - 1:
             break
     return process_stats_params(vacancies, site='HeadHunter')
 
 
-def get_site_stats_sj(language='Python'):
+def get_site_stats_sj(token, language='Python'):
     api_url = 'https://api.superjob.ru/2.0/vacancies/'
     vacancies = []
     SEARCHING_PERIOD = 30
@@ -93,7 +93,7 @@ def get_site_stats_sj(language='Python'):
     for page in count(0):
 
         headers = {
-            'X-Api-App-Id': os.environ['SJ_SECRET_KEY'],
+            'X-Api-App-Id': token,
         }
 
         payload = {
@@ -117,10 +117,10 @@ def get_site_stats_sj(language='Python'):
     return process_stats_params(vacancies, site='SuperJob')
 
 
-def create_stats(languages, site_stats_func):
+def create_stats(languages, site_stats_func, token=''):
     languages_stats = {}
     for language in languages:
-        average_salary, vacancies_processed, found_vacancies = site_stats_func(language)
+        average_salary, vacancies_processed, found_vacancies = site_stats_func(token, language=language)
         languages_stats[language] = {
             'vacancies_found': found_vacancies,
             'vacancies_processed': vacancies_processed,
@@ -152,6 +152,7 @@ def create_ascii_table(site, stats):
 
 def main():
     load_dotenv()
+    token = os.environ['SJ_SECRET_KEY']
     languages = [
         'Ruby', 'Swift', 'C', 'C#',
         'Java', 'JavaScript', 'PHP',
@@ -160,7 +161,7 @@ def main():
     test_languages = ['Ruby', 'Swift']
     sites_stats = {
         'HeadHunter': create_stats(test_languages, get_site_stats_hh),
-        'SuperJob': create_stats(test_languages, get_site_stats_sj),
+        'SuperJob': create_stats(test_languages, get_site_stats_sj, token),
     }
     for site, stats in sites_stats.items():
         ascii_table = create_ascii_table(site, stats)
