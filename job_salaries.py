@@ -1,6 +1,5 @@
 import os
 from itertools import count
-from dotenv.main import with_warn_for_invalid_lines
 
 import requests
 from dotenv import load_dotenv
@@ -41,14 +40,13 @@ def process_stats_params(vacancies, predict_salary_func):
         salary = predict_salary_func(vacancy)
         vacancy_salaries.append(salary)
 
-    found_vacancies = len(vacancy_salaries)
     vacancy_salaries = list(filter(bool, vacancy_salaries))
     if len(vacancy_salaries) != 0:
         average_salary = sum(vacancy_salaries) / len(vacancy_salaries)
     else:
         average_salary = 0
     vacancies_processed = len(vacancy_salaries)
-    return average_salary, vacancies_processed, found_vacancies
+    return average_salary, vacancies_processed
 
 
 def get_site_stats_hh(*args, language='Python'):
@@ -75,7 +73,8 @@ def get_site_stats_hh(*args, language='Python'):
 
         if page >= response_body['pages'] - 1:
             break
-    return process_stats_params(vacancies, predict_rub_salary_hh)
+    found_vacancies = response_body['found']
+    return *process_stats_params(vacancies, predict_rub_salary_hh), found_vacancies
 
 
 def get_site_stats_sj(token, language='Python'):
@@ -110,7 +109,8 @@ def get_site_stats_sj(token, language='Python'):
 
         if not response_body['more']:
             break
-    return process_stats_params(vacancies, predict_rub_salary_sj)
+    found_vacancies = response_body['total']
+    return *process_stats_params(vacancies, predict_rub_salary_sj), found_vacancies
 
 
 def create_stats(languages, site_stats_func, token=''):
@@ -154,10 +154,9 @@ def main():
         'Java', 'JavaScript', 'PHP',
         'R', 'Python', 'C++',
     ]
-    test_languages = ['Ruby', 'Swift']
     sites_stats = {
-        'HeadHunter': create_stats(test_languages, get_site_stats_hh),
-        'SuperJob': create_stats(test_languages, get_site_stats_sj, token),
+        'HeadHunter': create_stats(languages, get_site_stats_hh),
+        'SuperJob': create_stats(languages, get_site_stats_sj, token),
     }
     for site, stats in sites_stats.items():
         ascii_table = create_ascii_table(site, stats)
