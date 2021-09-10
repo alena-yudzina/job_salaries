@@ -74,7 +74,8 @@ def get_site_stats_hh(token, language='Python'):
         if page >= response_body['pages'] - 1:
             break
     found_vacancies = response_body['found']
-    average_salary, vacancies_processed = process_stats_params(vacancies, predict_rub_salary_hh)
+    average_salary, vacancies_processed = \
+        process_stats_params(vacancies, predict_rub_salary_hh)
     return average_salary, vacancies_processed, found_vacancies
 
 
@@ -115,7 +116,8 @@ def get_site_stats_sj(token, language='Python'):
         if not response_body['more']:
             break
     found_vacancies = response_body['total']
-    average_salary, vacancies_processed = process_stats_params(vacancies, predict_rub_salary_sj)
+    average_salary, vacancies_processed = \
+        process_stats_params(vacancies, predict_rub_salary_sj)
     return average_salary, vacancies_processed, found_vacancies
 
 
