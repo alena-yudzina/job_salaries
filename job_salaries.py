@@ -56,11 +56,11 @@ def get_site_stats_hh(token, language='Python'):
     searching_period = 30
     vacancies_per_page = 100
     payload = {
-            'text': 'программист {0}'.format(language),
-            'area': moscow_id,
-            'period': searching_period,
-            'per_page': vacancies_per_page,
-        }
+        'text': 'программист {0}'.format(language),
+        'area': moscow_id,
+        'period': searching_period,
+        'per_page': vacancies_per_page,
+    }
 
     for page in count(0):
 
